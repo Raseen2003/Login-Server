@@ -16,7 +16,7 @@ exports.registerValidation = [
         message: errors.array()[0].msg 
       });
     }
-    next(); // Move to the Controller if data is clean
+    next(); 
   }
 ];
 // login
@@ -24,13 +24,32 @@ exports.registerValidation = [
 exports.loginValidation = [
   body('email').isEmail().withMessage('Please enter a valid email address').normalizeEmail(),
   body('password').notEmpty().withMessage('Password is required'),
-  // ... (error checking function)
+
+  // The "Checker" function
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false, 
+        message: errors.array()[0].msg 
+      });
+    }
+    next(); // Move to the Controller if data is clean
+  }
 ];
 
 // forgot password
- exports.forgotPasswordValidation = [
+
+
+exports.forgotPasswordValidation = [
   body('email').isEmail().withMessage('A valid email is required to reset password'),
-  // ... (error checking function)
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: errors.array()[0].msg });
+    }
+    next();
+  }
 ];
 
 // reset password
@@ -39,5 +58,11 @@ exports.resetPasswordValidation = [
   body('password')
     .isLength({ min: 6 }).withMessage('New password must be at least 6 characters')
     .custom((value) => !/\s/.test(value)).withMessage('No spaces allowed'),
-  // ... (error checking function)
-];
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: errors.array()[0].msg });
+    }
+    next();
+  }
+];  

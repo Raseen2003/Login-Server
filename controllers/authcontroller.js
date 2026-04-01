@@ -50,7 +50,7 @@ exports.login = async (req, res) => {
   user: {
     name: user.name,
     email: user.email,
-    role: user.role // 👈 Make sure this is being sent!
+    role: user.role 
   }
 });
     } catch (err) {
@@ -60,65 +60,24 @@ exports.login = async (req, res) => {
 };
 
 // --- FORGOT PASSWORD ---
-exports.forgotPassword = async (req, res) => {
-    try {
-        const { email } = req.body;
-        const user = await User.findOne({ email: email.toLowerCase() });
 
-        if (!user) {
-            return res.status(404).json({ message: "No user found with that email." });
-        }
-
-        // 1. Create a REAL random token
-        const resetToken = crypto.randomBytes(32).toString("hex");
-
-        // 2. SAVE to the UserToken collection (This creates the collection in Atlas)
-        const newToken = new UserToken({
-            userId: user._id,
-            token: resetToken
-        });
-        await newToken.save(); 
-
-        // 3. Build the link
-        const resetUrl = `http://localhost:4200/reset-password/${resetToken}`;
-
-        // 4. Send Email
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: process.env.EMAIL_USER,
-                pass: process.env.EMAIL_PASS
-            }
-        });
-
-        await transporter.sendMail({
-            from: process.env.EMAIL_USER,
-            to: user.email,
-            subject: 'Password Reset Request',
-            text: `Click the link to reset your password: ${resetUrl}`
-        });
-
-        res.json({ message: "Reset link sent to your email!" });
-
-    } catch (err) {
-        console.error(" ERROR:", err);
-        res.status(500).json({ message: "Server error" });
-    }
-};
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         
-       
+        
         const user = await User.findOne({ email: email.toLowerCase() });
         if (!user) {
             return res.status(404).json({ message: "No user found with this email" });
         }
 
-       
+
+        const frontendBase = process.env.FRONTEND_URL || 'http://localhost:4200';
+        const baseUrl = frontendBase.endsWith('/') ? frontendBase : `${frontendBase}/`;
+
+        // 2. Generate secure token
         const resetToken = crypto.randomBytes(32).toString("hex");
 
-        // 3. Save the token to your NEW UserToken collection
         await new UserToken({
             userId: user._id,
             token: resetToken
@@ -133,8 +92,7 @@ exports.forgotPassword = async (req, res) => {
             }
         });
 
-       
-        const resetUrl = `http://localhost:4200/reset-password/${resetToken}`;
+        const resetUrl = `${baseUrl}reset-password/${resetToken}`;
 
         const mailOptions = {
             from: process.env.EMAIL_USER,
@@ -148,6 +106,7 @@ exports.forgotPassword = async (req, res) => {
         res.status(200).json({ message: "Reset link sent to your email!" });
 
     } catch (error) {
+        console.error("FORGOT PASSWORD ERROR:", error);
         res.status(500).json({ message: "Server error. Please try again." });
     }
 };
@@ -166,6 +125,12 @@ exports.resetPassword = async (req, res) => {
         if (!tokenDoc) {
             return res.status(400).json({ message: "Token invalid or expired." });
         }
+        const oneHour = 60 * 60 * 1000;
+if (Date.now() - tokenDoc.createdAt.getTime() > oneHour) {
+  await UserToken.deleteOne({ _id: tokenDoc._id });
+  return res.status(400).json({ message: "Token has expired. Please request a new one." });
+}
+
 
         const user = await User.findById(tokenDoc.userId);
         if (!user) return res.status(404).json({ message: "User not found." });
