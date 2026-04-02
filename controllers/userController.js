@@ -56,22 +56,52 @@ exports.deleteUser = async (req, res) => {
 };
 
 // Update a user (Admin Edit)
+// exports.updateUser = async (req, res) => {
+//   try {
+//     const { id } = req.params;
+//     const updates = { ...req.body };
+
+//     // 🌟 If Admin provided a new password, hash it!
+//     if (updates.password) {
+//       const salt = await bcrypt.genSalt(10);
+//       updates.password = await bcrypt.hash(updates.password, salt);
+//     } else {
+//       // If password is empty/missing, remove it so we don't overwrite with null
+//       delete updates.password;
+//     }
+
+//     const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
+
+//     if (!updatedUser) return res.status(404).json({ message: 'User not found' });
+
+//     res.status(200).json({ message: 'Updated Successfully', user: updatedUser });
+//   } catch (error) {
+//     res.status(500).json({ message: 'Update failed', error: error.message });
+//   }
+  
+// ;
+
+// };
+
+
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = { ...req.body };
 
-    // 🌟 If Admin provided a new password, hash it!
+    // If middleware successfully uploaded a file, it will be in req.file
+    if (req.file) {
+      updates.profilePic = `/uploads/profile_pics/${req.file.filename}`;
+    }
+
     if (updates.password) {
       const salt = await bcrypt.genSalt(10);
       updates.password = await bcrypt.hash(updates.password, salt);
     } else {
-      // If password is empty/missing, remove it so we don't overwrite with null
       delete updates.password;
     }
 
     const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
-
     if (!updatedUser) return res.status(404).json({ message: 'User not found' });
 
     res.status(200).json({ message: 'Updated Successfully', user: updatedUser });

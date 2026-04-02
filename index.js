@@ -4,6 +4,7 @@
   const cors = require('cors');
   const authRoutes = require('./routes/authRoutes');
   const userRoutes = require('./routes/userRoutes'); 
+  const path = require('path');
 
   const app = express();
 
@@ -19,6 +20,8 @@
 
   app.use('/api/auth', authRoutes);
   app.use('/api/users', userRoutes);
+    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
   function printRoutes(stack, prefix = '') {
     stack.forEach((middleware) => {
       if (middleware.route) {
