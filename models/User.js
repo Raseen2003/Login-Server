@@ -33,7 +33,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         default: ''
     },
-    // 🖼️ PROFILE PICTURE
+    
     // We store the URL or file path as a string
     profilePic: {
         type: String, 

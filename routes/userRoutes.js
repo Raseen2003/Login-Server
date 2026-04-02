@@ -1,13 +1,17 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-const {protect,isAdmin} = require('../middleware/auth');
 
+// ➕ POST: Create a new user (Admin Task)
+router.post('/add', userController.addUser);
 
-router.post('/add', protect, isAdmin, userController.addRandomUser);
-router.get('/all', userController.getAllRandomUsers);
-router.delete('/:id', protect, isAdmin, userController.deleteRandomUser);
-router.put('/:id', protect, isAdmin, userController.updateRandomUser);
+// 📄 GET: Fetch all registered users
+router.get('/all', userController.getAllUsers);
 
+// 🗑️ DELETE: Remove a user
+router.delete('/:id', userController.deleteUser);
 
-module.exports = router;      
+// 📝 PUT: Update an existing user
+router.put('/:id', userController.updateUser);
+
+module.exports = router;
