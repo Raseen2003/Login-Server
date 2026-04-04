@@ -88,6 +88,8 @@ exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
     const updates = { ...req.body };
+console.log('req.body:',req.body);
+console.log('req.file:',req.file);
 
     // If middleware successfully uploaded a file, it will be in req.file
     if (req.file) {
