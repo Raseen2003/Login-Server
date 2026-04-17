@@ -1,21 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/userController');
-
-// ✅ FIXED: upload.js uses module.exports = upload (default export)
-// So import it directly, NOT as { upload }
+const { protect, isAdmin } = require('../middleware/auth');
 const upload = require('../middleware/upload');
 
-// ➕ POST: Create a new user (Admin Task)
-router.post('/add', userController.addUser);
 
-// 📄 GET: Fetch all registered users
-router.get('/all', userController.getAllUsers);
-
-// 🗑️ DELETE: Remove a user
-router.delete('/:id', userController.deleteUser);
-
-// 📝 PUT: Update an existing user (with optional profile picture)
-router.put('/:id', upload.single('profilePic'), userController.updateUser);
+router.post('/add', protect, isAdmin, userController.addUser);
+router.get('/all', protect, userController.getAllUsers);
+router.delete('/:id', protect, isAdmin, userController.deleteUser);
+router.put('/:id', protect, isAdmin, upload.single('profilePic'), userController.updateUser);
 
 module.exports = router;

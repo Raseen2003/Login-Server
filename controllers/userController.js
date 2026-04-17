@@ -1,7 +1,7 @@
 const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 
-// ➕ ADD USER
+//  ADD USER
 exports.addUser = async (req, res) => {
   try {
     const { name, email, password, phoneno, address, role } = req.body;
@@ -38,11 +38,11 @@ exports.addUser = async (req, res) => {
   }
 };
 
-// 📄 GET ALL — excludes soft-deleted, supports ?search=
+//  GET ALL — excludes soft-deleted, supports ?search=
 exports.getAllUsers = async (req, res) => {
   try {
     const { search } = req.query;
-    let filter = { isDeleted: false };
+let filter = { isDeleted: { $ne: true } };
 
     if (search && search.trim() !== '') {
       const regex = new RegExp(search.trim(), 'i');
@@ -56,7 +56,7 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
-// 🗑️ SOFT DELETE — sets isDeleted flag, never removes from DB
+//  SOFT DELETE — sets isDeleted flag, never removes from DB
 exports.deleteUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -71,7 +71,7 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
-// 📝 UPDATE USER
+//  UPDATE USER
 exports.updateUser = async (req, res) => {
   try {
     const { id } = req.params;
@@ -83,9 +83,14 @@ exports.updateUser = async (req, res) => {
 
     if (updates.name && !/^[a-zA-Z ]+$/.test(updates.name.trim()))
       return res.status(400).json({ message: 'Name must contain letters only' });
+    if (name && name.trim().length > 15)
+  return res.status(400).json({ message: 'Name must be 15 characters or less' });
 
     if (updates.phoneno && !/^[0-9]{10}$/.test(updates.phoneno))
       return res.status(400).json({ message: 'Phone number must be exactly 10 digits' });
+
+    if (updates.address && updates.address.length > 50)
+  return res.status(400).json({ message: 'Address must be 50 characters or less' });
 
     if (updates.password && updates.password.length < 6)
       return res.status(400).json({ message: 'Password must be at least 6 characters' });

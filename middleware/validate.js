@@ -1,7 +1,8 @@
 const { body, validationResult } = require('express-validator');
 
 exports.registerValidation = [
-  body('name').trim().notEmpty().withMessage('Name is required'),
+// Add to registerValidation in validate.js
+body('name').trim().notEmpty().matches(/^[a-zA-Z ]+$/).withMessage('Name must contain letters only'),
   body('email').isEmail().withMessage('Invalid email format').normalizeEmail(),
   body('password')
     .isLength({ min: 6 }).withMessage('Password must be at least 6 characters')

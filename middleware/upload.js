@@ -12,7 +12,7 @@ const storage = multer.diskStorage({
   }
 });
 
-// 2. Define File Filter (JPEG/JPG Only)
+// 
 const fileFilter = (req, file, cb) => {
   const allowedTypes = /jpeg|jpg/;
   const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
