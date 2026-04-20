@@ -66,8 +66,7 @@ exports.deleteUser = async (req, res) => {
 
     await User.findByIdAndUpdate(id, { isDeleted: true, deletedAt: new Date() });
     res.status(200).json({ message: 'User removed successfully' });
-  } catch (error) {
-    res.status(500).json({ message: 'Delete failed', error: error.message });
+  } catch (error) {    console.error('Update user error:', error);    res.status(500).json({ message: 'Delete failed', error: error.message });
   }
 };
 
@@ -83,14 +82,25 @@ exports.updateUser = async (req, res) => {
 
     if (updates.name && !/^[a-zA-Z ]+$/.test(updates.name.trim()))
       return res.status(400).json({ message: 'Name must contain letters only' });
-    if (name && name.trim().length > 15)
-  return res.status(400).json({ message: 'Name must be 15 characters or less' });
+    if (updates.name && updates.name.trim().length > 15)
+      return res.status(400).json({ message: 'Name must be 15 characters or less' });
+
+    if (updates.email) {
+      const normalizedEmail = updates.email.toLowerCase().trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail))
+        return res.status(400).json({ message: 'Invalid email address' });
+      updates.email = normalizedEmail;
+
+      const existingUser = await User.findOne({ email: normalizedEmail, _id: { $ne: id } });
+      if (existingUser)
+        return res.status(400).json({ message: 'User with this email already exists' });
+    }
 
     if (updates.phoneno && !/^[0-9]{10}$/.test(updates.phoneno))
       return res.status(400).json({ message: 'Phone number must be exactly 10 digits' });
 
     if (updates.address && updates.address.length > 50)
-  return res.status(400).json({ message: 'Address must be 50 characters or less' });
+      return res.status(400).json({ message: 'Address must be 50 characters or less' });
 
     if (updates.password && updates.password.length < 6)
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
@@ -109,6 +119,7 @@ exports.updateUser = async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(id, updates, { new: true });
     res.status(200).json({ message: 'Updated Successfully', user: updatedUser });
   } catch (error) {
+    console.error('Update user error:', error);
     res.status(500).json({ message: 'Update failed', error: error.message });
   }
 };
